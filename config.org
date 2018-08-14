@@ -1,8 +1,6 @@
 
 
 
-
-
 #+STARTUP: overview
 #+TITLE: Marc's Emacs
 #+CREATOR: Marc Demers
@@ -24,21 +22,23 @@ prior to cloning this configuration. The next time you launch Emacs (and I recom
 ** Mac
 #+BEGIN_SRC emacs-lisp
   (if (eq system-type 'darwin)
-    (set-default-font "Monaco 15")
-    (global-set-key [home] 'move-beginning-of-line)
-    (global-set-key [end] 'move-end-of-line)
-    (setenv "PATH" (concat "/usr/local/bin:" (getenv "PATH")))
-    (setq exec-path (append exec-path '("/usr/local/bin"))))
+      (progn
+        (set-default-font "Monaco 15")
+        (global-set-key [home] 'move-beginning-of-line)
+        (global-set-key [end] 'move-end-of-line)
+        (setenv "PATH" (concat "/usr/local/bin:" (getenv "PATH")))
+        (setq exec-path (append exec-path '("/usr/local/bin")))))
 #+END_SRC
 ** Linux
 #+BEGIN_SRC emacs-lisp
   (if (eq system-type 'gnu/linux)
-      t)
+      (progn t))
 #+END_SRC
 ** Windows
 #+BEGIN_SRC emacs-lisp
   (if (eq system-type 'windows-nt)
-      (set-default-font "Consolas 15"))
+      (progn 
+        (set-default-font "Consolas 15")))
 #+END_SRC
 
 * Emacs Configuration
@@ -161,6 +161,7 @@ them running, it just prevents them from showing up and taking up space.
     :init
     (diminish 'visual-line-mode)
     (diminish 'subword-mode)
+    (diminish 'company-mode)
     (diminish 'org-indent-mode)
     (diminish 'which-key-mode))
 #+END_SRC
@@ -194,6 +195,11 @@ buffers, the current position of your cursor will be briefly highlighted now.
 (blink-cursor-mode 0)
 #+END_SRC
 * General
+** Diminish
+#+BEGIN_SRC emacs-lisp
+  (use-package diminish
+    :ensure t)
+#+END_SRC
 ** Disable bell
 This is annoying, remove this line if you like being visually reminded of events.
 #+BEGIN_SRC emacs-lisp
@@ -402,12 +408,13 @@ A pretty simple package, takes your cursor and semantically expands the region, 
 #+END_SRC
 ** Snippet
 #+BEGIN_SRC emacs-lisp
-    (use-package yasnippet
-      :ensure t
-      :config
-        (use-package yasnippet-snippets
-          :ensure t)
-        (yas-reload-all))
+  (use-package yasnippet
+    :ensure t
+    :diminish yas-minor-mode
+    :config
+      (use-package yasnippet-snippets
+        :ensure t)
+      (yas-reload-all))
 #+END_SRC
 
 ** Spell Check
@@ -424,9 +431,14 @@ it starts doing its magic after typing in only 2 characters.
 
 I prefer =C-n= and =C-p= to move around the items, so I remap those accordingly.
 #+BEGIN_SRC emacs-lisp
+  (use-package abbrev
+    :init
+    (progn 
+    (eval-after-load "abbrev"
+    (diminish 'abbrev-mode))))
+
   (use-package company
     :ensure t
-    :diminish company-mode
     :config
     (setq company-idle-delay 0)
     (setq company-minimum-prefix-length 2))
@@ -570,6 +582,7 @@ it in the appropriate color. This is a lot cooler than you may think.
 #+BEGIN_SRC emacs-lisp
   (use-package rainbow-mode
     :ensure t
+    :diminish rainbow-mode
     :init
       (add-hook 'prog-mode-hook 'rainbow-mode))
 #+END_SRC
@@ -592,6 +605,14 @@ Besides, it's only used for programming.
 
 ** Languages
 *** Bash
+**** Mode
+#+BEGIN_SRC emacs-lisp
+  (defvar my-term-shell "/bin/bash")
+  (defadvice ansi-term (before force-bash)
+    (interactive (list my-term-shell)))
+  (ad-activate 'ansi-term)
+  (global-set-key (kbd "<s-return>") 'ansi-term)
+#+END_SRC
 **** yasnippet
 #+BEGIN_SRC emacs-lisp
   (add-hook 'shell-mode-hook 'yas-minor-mode)
@@ -673,6 +694,7 @@ Requires libclang to be installed.
 
   (use-package irony
     :ensure t
+    :diminish irony-mode
     :config
     (add-hook 'c++-mode-hook 'irony-mode)
     (add-hook 'c-mode-hook 'irony-mode)
@@ -836,6 +858,15 @@ Requires libclang to be installed.
 **** flycheck
 #+BEGIN_SRC emacs-lisp
   (add-hook 'markdown-mode-hook 'flycheck-mode)
+#+END_SRC
+*** Typescript
+**** Mode
+#+BEGIN_SRC emacs-lisp
+   (use-package typescript-mode
+     :ensure t
+      :defer t
+      :mode ("\\.\\(ts\\)$" . typescript-mode)
+      :commands typescript-mode)
 #+END_SRC
 *** Python
 **** yasnippet

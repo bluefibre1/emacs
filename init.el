@@ -47,7 +47,7 @@
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
    (quote
-    (js2-mode auctex yaml-mode markdown-mode json-mode csharp-mode batch-mode p4 which-key diminish org-bullets htmlize magit company-shell company-lua slime-company slime company-jedi company-irony company-c-headers flycheck-clang-analyzer flycheck yasnippet-snippets yasnippet expand-region rainbow-delimiters rainbow-mode beacon hemisu-dark use-package)))
+    (projectile yasnippet-snippets yaml-mode which-key use-package typescript-mode switch-window swiper spaceline slime-company rainbow-mode rainbow-delimiters pretty-mode p4 org-bullets markdown-mode mark-multiple magit linum-relative json-mode js2-mode htmlize hemisu-theme helm flycheck-clang-analyzer expand-region diminish dashboard csharp-mode company-shell company-lua company-jedi company-irony company-c-headers beacon avy auctex)))
  '(safe-local-variable-values
    (quote
     ((eval progn
