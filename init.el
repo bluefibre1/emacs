@@ -47,27 +47,8 @@
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
    (quote
-    (projectile yasnippet-snippets yaml-mode which-key use-package typescript-mode switch-window swiper spaceline slime-company rainbow-mode rainbow-delimiters pretty-mode p4 org-bullets markdown-mode mark-multiple magit linum-relative json-mode js2-mode htmlize hemisu-theme helm flycheck-clang-analyzer expand-region diminish dashboard csharp-mode company-shell company-lua company-jedi company-irony company-c-headers beacon avy auctex)))
- '(safe-local-variable-values
-   (quote
-    ((eval progn
-	   (require
-	    (quote projectile))
-	   (setq projectile-default-run-command "crawler")
-	   (setq company-clang-arguments
-		 (delete-dups
-		  (append company-clang-arguments
-			  (list
-			   (concat "-I"
-				   (projectile-project-root)
-				   "inc")))))
-	   (setq flycheck-clang-include-path
-		 (delete-dups
-		  (append flycheck-clang-include-path
-			  (list
-			   (concat
-			    (projectile-project-root)
-			    "inc"))))))))))
+    (helm-projectile projectile yasnippet-snippets yaml-mode which-key use-package typescript-mode switch-window swiper spaceline slime-company rainbow-mode rainbow-delimiters pretty-mode p4 org-bullets markdown-mode mark-multiple magit linum-relative json-mode js2-mode htmlize hemisu-theme helm flycheck-clang-analyzer expand-region diminish dashboard csharp-mode company-shell company-lua company-jedi company-irony company-c-headers beacon avy auctex)))
+)
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
