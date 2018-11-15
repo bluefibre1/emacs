@@ -1,6 +1,8 @@
 
 
 
+
+
 #+STARTUP: overview
 #+TITLE: Marc's Emacs
 #+CREATOR: Marc Demers
@@ -38,7 +40,7 @@ prior to cloning this configuration. The next time you launch Emacs (and I recom
 #+BEGIN_SRC emacs-lisp
   (if (eq system-type 'windows-nt)
       (progn 
-        (set-default-font "Consolas 15")))
+        (set-default-font "Monaco 11")))
 #+END_SRC
 
 * Emacs Configuration
@@ -72,7 +74,12 @@ The most important part of every configuration.
     :init
       (load-theme 'hemisu-dark t))
 #+END_SRC
-** Remove lame startup screen
+** Disable bell
+This is annoying, remove this line if you like being visually reminded of events.
+#+BEGIN_SRC emacs-lisp
+(setq ring-bell-function 'ignore)
+#+END_SRC
+** Remove startup screen
 We use an actual replacement for it, keep reading or head directly to =dashboard=.
 #+BEGIN_SRC emacs-lisp
 (setq inhibit-startup-message t)
@@ -88,11 +95,11 @@ If you like using any of those, change =-1= to =1=.
 ** Pretty symbols
 Changes =lambda= to an actual symbol and a few others as well, only in the GUI version though.
 #+BEGIN_SRC emacs-lisp
-  (when window-system
-        (use-package pretty-mode
-        :ensure t
-        :config
-        (global-pretty-mode t)))
+  ;; (when window-system
+  ;;       (use-package pretty-mode
+  ;;       :ensure t
+  ;;       :config
+  ;;       (global-pretty-mode t)))
 #+END_SRC
 
 ** Dashboard
@@ -131,8 +138,8 @@ Changes =lambda= to an actual symbol and a few others as well, only in the GUI v
      :config
      (require 'spaceline-config)
        (setq spaceline-buffer-encoding-abbrev-p nil)
-       (setq spaceline-line-column-p nil)
-       (setq spaceline-line-p nil)
+       ;;(setq spaceline-line-column-p nil)
+       ;;(setq spaceline-line-p nil)
        (setq powerline-default-separator (quote arrow))
        (spaceline-spacemacs-theme))
  #+END_SRC
@@ -195,16 +202,6 @@ buffers, the current position of your cursor will be briefly highlighted now.
 (blink-cursor-mode 0)
 #+END_SRC
 * General
-** Diminish
-#+BEGIN_SRC emacs-lisp
-  (use-package diminish
-    :ensure t)
-#+END_SRC
-** Disable bell
-This is annoying, remove this line if you like being visually reminded of events.
-#+BEGIN_SRC emacs-lisp
-(setq ring-bell-function 'ignore)
-#+END_SRC
 ** Set UTF-8 encoding
 #+BEGIN_SRC emacs-lisp 
   (setq locale-coding-system 'utf-8)
@@ -212,6 +209,11 @@ This is annoying, remove this line if you like being visually reminded of events
   (set-keyboard-coding-system 'utf-8)
   (set-selection-coding-system 'utf-8)
   (prefer-coding-system 'utf-8)
+#+END_SRC
+** Delete Selection
+By default when you start typing and have a selection, Emacs just moves the cursor at the end of the selection and start adding characters from there. This is fine, but different from most editor on Windows now days. So to be more consistent, we change that back to overwriting the selection.
+#+BEGIN_SRC emacs-lisp
+ (delete-selection-mode t)
 #+END_SRC
 ** Backups And Auto Saves
 I don't use either, you might want to turn those from =nil= to =t= if you do.
@@ -336,7 +338,7 @@ I like me some searching, the default search is very meh. In emacs, you mostly u
 #+BEGIN_SRC emacs-lisp
   (use-package swiper
     :ensure t
-    :bind ("C-s" . 'swiper))
+    :bind ("C-c s" . 'swiper))
 #+END_SRC
 
 ** Helm
@@ -349,6 +351,8 @@ I like me some searching, the default search is very meh. In emacs, you mostly u
     ("C-x C-f" . 'helm-find-files)
     ("C-x C-b" . 'helm-buffers-list)
     ("C-x b" . 'helm-buffers-list)
+    ("C-c h o" . 'helm-occur)
+    ("C-c h r" . 'helm-resume)
     ("M-x" . 'helm-M-x)
     :config
     (defun daedreth/helm-hide-minibuffer ()
@@ -391,13 +395,11 @@ Afterwards you will notice how all instances of said character have additional l
 Pressing those letters, that are next to your desired character will move your cursor over there.
 Admittedly, this sounds overly complicated and complex, but in reality takes a split second
 and improves your life tremendously.
-
-I like =M-s= for it, same as =C-s= is for moving by searching string, now =M-s= is moving by searching characters.
 #+BEGIN_SRC emacs-lisp
   (use-package avy
     :ensure t
     :bind
-      ("M-s" . avy-goto-char))
+      ("M-o" . avy-goto-char))
 #+END_SRC
 ** Expand region
 A pretty simple package, takes your cursor and semantically expands the region, so words, sentences, maybe the contents of some parentheses, it's awesome, try it out.
@@ -445,7 +447,6 @@ I prefer =C-n= and =C-p= to move around the items, so I remap those accordingly.
 
   (with-eval-after-load 'company
     (define-key company-active-map (kbd "M-n") nil)
-    (define-key company-active-map (kbd "M-p") nil)
     (define-key company-active-map (kbd "C-n") #'company-select-next)
     (define-key company-active-map (kbd "C-p") #'company-select-previous)
     (define-key company-active-map (kbd "SPC") #'company-abort))
@@ -522,16 +523,16 @@ It's beautiful
 #+END_SRC
 ** Recents
 #+BEGIN_SRC emacs-lisp
-(use-package recentf
-  :ensure t
-  :defer t
-  :config
-  (progn
-    (recentf-mode 1)
-    (setq recentf-max-menu-items 200)
-    (setq recentf-max-saved-items 200)
-    (add-to-list 'recentf-exclude "\\.el\\'")))
-    #+END_SR
+  (use-package recentf
+    :ensure t
+    :defer 1
+    :config
+    (progn
+      (recentf-mode 1)
+      (setq recentf-max-menu-items 200)
+      (setq recentf-max-saved-items 200)
+      (add-to-list 'recentf-exclude "\\.el\\'")))
+#+END_SRC
 * Project
 Projectile is an awesome project manager, mostly because it recognizes directories
 with a =.git= directory as projects and helps you manage them accordingly.
@@ -539,21 +540,26 @@ with a =.git= directory as projects and helps you manage them accordingly.
 ** Enable projectile globally
 This makes sure that everything can be a project.
 #+BEGIN_SRC emacs-lisp
-  (use-package projectile
-    :ensure t
-    :init
-    (projectile-mode 1)
-    :config
-    (progn
-      (setq projectile-completion-system 'helm)
-      (setq projectile-globally-ignored-files (append '("*.o" "*.so" "GTAGS" "GRTAGS" "GPATH" "*.log" "*.txt" "*.exe" "*.svg" "*.zip" "*.pyc" "*.jar" "*.sdf")))
-      (setq grep-find-ignored-files projectile-globally-ignored-files)
-      (setq projectile-globally-ignored-directories (append '("bin" "CMakeFiles" ".git")))
-      (setq grep-find-ignored-directories projectile-globally-ignored-directories)
-      (setq projectile-switch-project-action 'helm-projectile)
-      (setq projectile-indexing-method 'alien)
-      (setq projectile-enable-caching t)
-      (setq compilation-scroll-output 'first-error)))
+    (use-package projectile
+      :ensure t
+      :init
+      (projectile-mode 1)
+      :config
+      (progn
+        (setq projectile-completion-system 'helm)
+        (setq projectile-globally-ignored-files (append '("*.o" "*.so" "GTAGS" "GRTAGS" "GPATH" "*.log" "*.txt" "*.exe" "*.svg" "*.zip" "*.pyc" "*.jar" "*.sdf")))
+        (setq grep-find-ignored-files projectile-globally-ignored-files)
+        (setq projectile-globally-ignored-directories (append '("bin" "CMakeFiles" ".git")))
+        (setq grep-find-ignored-directories projectile-globally-ignored-directories)
+        (setq projectile-switch-project-action 'helm-projectile)
+        (setq projectile-indexing-method 'alien)
+        (setq projectile-enable-caching t)
+        (setq compilation-scroll-output 'first-error)))
+
+    (use-package helm-projectile
+      :ensure t
+      :defer t
+      :bind ("M-p" . helm-projectile))
 #+END_SRC
 
 ** Let projectile call make
@@ -756,8 +762,8 @@ Requires libclang to be installed.
   (use-package js2-mode
     :ensure t
     :defer t
-    :mode ("\\.\\(js\\)$" . json-mode)
-    :interpreter ("node" . json-mode))
+    :mode ("\\.\\(js\\)$" . js2-mode)
+    :interpreter ("node" . js2-mode))
 #+END_SRC
 **** yasnippet
 #+BEGIN_SRC emacs-lisp
@@ -789,8 +795,8 @@ Requires libclang to be installed.
 *** LaTeX
 **** Mode
 #+BEGIN_SRC emacs-lisp
-  (use-package tex-site
-    :ensure auctex
+  (use-package auctex
+    :ensure t
     :mode ("\\.\\(tex\\)$" . latex-mode)
     :config
     (progn
@@ -920,7 +926,6 @@ Requires libclang to be installed.
 #+END_SRC
 
 
-
 ** Source Control
 *** Git
 Countless are the times where I opened ansi-term to use =git= on something.
@@ -934,14 +939,14 @@ great. It's easy and intuitive to use, shows its options at a keypress and much 
     (setq magit-push-always-verify nil)
     (setq git-commit-summary-max-length 50)
     :bind
-    ("M-g" . magit-status))
+    ("C-c m" . magit-status))
 #+END_SRC
 *** Perforce
 #+BEGIN_SRC emacs-lisp
 (use-package p4
  :ensure t
  :defer t
- :bind-keymap (("M-p" . p4-prefix-map)))
+ :bind-keymap (("C-c p" . p4-prefix-map)))
 #+END_SRC
 
 * Org
