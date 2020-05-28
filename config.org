@@ -1,8 +1,4 @@
 
-
-
-
-
 #+STARTUP: overview
 #+TITLE: Marc's Emacs
 #+CREATOR: Marc Demers
@@ -40,7 +36,13 @@ prior to cloning this configuration. The next time you launch Emacs (and I recom
 #+BEGIN_SRC emacs-lisp
   (if (eq system-type 'windows-nt)
       (progn 
-        (set-default-font "Monaco 11")))
+        (set-default-font "Monaco 11")
+        (setq default-frame-alist '((font . "Monaco 11")))
+        (setenv "PATH"
+                (concat
+                 ;; Change this with your path to MSYS bin directory
+                 "c:\\Program Files\\Git\\usr\\bin;"
+                 (getenv "PATH")))))
 #+END_SRC
 
 * Emacs Configuration
@@ -201,6 +203,11 @@ buffers, the current position of your cursor will be briefly highlighted now.
 #+BEGIN_SRC emacs-lisp
 (blink-cursor-mode 0)
 #+END_SRC
+** Search
+#+BEGIN_SRC emacs-lisp
+  (setq isearch-allow-scroll t)
+#+END_SRC
+
 * General
 ** Set UTF-8 encoding
 #+BEGIN_SRC emacs-lisp 
@@ -343,48 +350,50 @@ I like me some searching, the default search is very meh. In emacs, you mostly u
 
 ** Helm
 #+BEGIN_SRC emacs-lisp
-  (use-package helm
-    :ensure t
-    :diminish helm-mode
-    :bind
-    ("C-x C-r" . helm-recentf)
-    ("C-x C-f" . 'helm-find-files)
-    ("C-x C-b" . 'helm-buffers-list)
-    ("C-x b" . 'helm-buffers-list)
-    ("C-c h o" . 'helm-occur)
-    ("C-c h r" . 'helm-resume)
-    ("M-x" . 'helm-M-x)
-    :config
-    (defun daedreth/helm-hide-minibuffer ()
-      (when (with-helm-buffer helm-echo-input-in-header-line)
-        (let ((ov (make-overlay (point-min) (point-max) nil nil t)))
-          (overlay-put ov 'window (selected-window))
-          (overlay-put ov 'face
-                       (let ((bg-color (face-background 'default nil)))
-                         `(:background ,bg-color :foreground ,bg-color)))
-          (setq-local cursor-type nil))))
-    (add-hook 'helm-minibuffer-set-up-hook 'daedreth/helm-hide-minibuffer)
-    (setq helm-autoresize-max-height 0
-          helm-autoresize-min-height 40
-          helm-M-x-fuzzy-match t
-          helm-buffers-fuzzy-matching t
-          helm-recentf-fuzzy-match t
-          helm-semantic-fuzzy-match t
-          helm-imenu-fuzzy-match t
-          helm-split-window-in-side-p nil
-          helm-move-to-line-cycle-in-source nil
-          helm-ff-search-library-in-sexp t
-          helm-scroll-amount 8 
-          helm-echo-input-in-header-line t
-          helm-boring-buffer-regexp-list '("\\` " "\\*helm" "\\*helm-mode" "\\*Echo Area" "\\*Minibuf"))
-    :init
-    (helm-mode 1))
+    (use-package helm
+      :ensure t
+      :diminish helm-mode
+      :bind
+      ("C-x C-r" . helm-recentf)
+      ("C-x C-f" . 'helm-find-files)
+      ("C-x C-b" . 'helm-buffers-list)
+      ("C-x b" . 'helm-buffers-list)
+      ("C-c h o" . 'helm-occur)
+      ("C-c h r" . 'helm-resume)
+      ("M-x" . 'helm-M-x)
+      :config
+      (defun daedreth/helm-hide-minibuffer ()
+        (when (with-helm-buffer helm-echo-input-in-header-line)
+          (let ((ov (make-overlay (point-min) (point-max) nil nil t)))
+            (overlay-put ov 'window (selected-window))
+            (overlay-put ov 'face
+                         (let ((bg-color (face-background 'default nil)))
+                           `(:background ,bg-color :foreground ,bg-color)))
+            (setq-local cursor-type nil))))
+      (add-hook 'helm-minibuffer-set-up-hook 'daedreth/helm-hide-minibuffer)
+      (setq helm-autoresize-max-height 0
+            helm-autoresize-min-height 40
+            helm-M-x-fuzzy-match t
+            helm-buffers-fuzzy-matching t
+            helm-recentf-fuzzy-match t
+            helm-semantic-fuzzy-match t
+            helm-imenu-fuzzy-match t
+            helm-split-window-in-side-p nil
+            helm-move-to-line-cycle-in-source nil
+            helm-ff-search-library-in-sexp t
+            helm-scroll-amount 8 
+            helm-echo-input-in-header-line t
+            helm-boring-buffer-regexp-list '("\\` " "\\*helm" "\\*helm-mode" "\\*Echo Area" "\\*Minibuf"))
+      :init
+      (helm-mode 1))
 
-  (require 'helm-config)    
-  (helm-autoresize-mode 1)
-  (define-key helm-map (kbd "<tab>") 'helm-execute-persistent-action) ; rebind tab to run persistent action
-  (define-key helm-map (kbd "C-i") 'helm-execute-persistent-action) ; make TAB works in terminal
-  (define-key helm-map (kbd "C-z")  'helm-select-action) ; list actions using C-z
+    (require 'helm-config)    
+    (helm-autoresize-mode 1)
+    (define-key helm-map (kbd "<tab>") 'helm-execute-persistent-action) ; rebind tab to run persistent action
+    (define-key helm-map (kbd "C-i") 'helm-execute-persistent-action) ; make TAB works in terminal
+    (define-key helm-map (kbd "C-z")  'helm-select-action) ; list actions using C-z
+
+  (use-package wgrep-helm :ensure t)
 #+END_SRC
 ** Goto Word In Screen
 Many times have I pondered how I can move around buffers even quicker.
@@ -553,6 +562,7 @@ This makes sure that everything can be a project.
         (setq grep-find-ignored-directories projectile-globally-ignored-directories)
         (setq projectile-switch-project-action 'helm-projectile)
         (setq projectile-indexing-method 'alien)
+        (setq projectile-project-compilation-cmd "")
         (setq projectile-enable-caching t)
         (setq compilation-scroll-output 'first-error)))
 
@@ -574,13 +584,24 @@ we have access to relative line numbering in programming-related modes.
 I highly recommend not enabling =linum-relative-mode= globally, as it messed up 
 something like =ansi-term= for instance.
 #+BEGIN_SRC emacs-lisp
-    (use-package linum-relative
-      :ensure t
-      :diminish linum-relative-mode
-      :config
-	(setq linum-relative-current-symbol "")
-	(add-hook 'prog-mode-hook 'linum-relative-mode))
+  (use-package linum
+    :ensure t
+    :diminish linum-mode
+    :config
+      (add-hook 'prog-mode-hook 'linum-mode)
+      (add-hook 'tex-mode-hook 'linum-mode))
 #+END_SRC
+** Tab as space
+Tab is always replaced by 4 spaces
+#+BEGIN_SRC emacs-lisp
+  (defun my-tab-as-space-hook() 
+    (progn
+      (setq indent-tabs-mode nil)
+      (setq tab-width 4)
+      (setq js-indent-level 4)))
+  (add-hook 'prog-mode-hook 'my-tab-as-space-hook)
+#+END_SRC
+
 ** Rainbow
 Mostly useful if you are into web development or game development.
 Every time emacs encounters a hexadecimal code that resembles a color, it will automatically highlight
@@ -704,7 +725,18 @@ Requires libclang to be installed.
     :config
     (add-hook 'c++-mode-hook 'irony-mode)
     (add-hook 'c-mode-hook 'irony-mode)
-    (add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options))
+    (add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options)
+    (if (eq system-type 'windows-nt)
+        (progn
+          ;; Windows performance tweaks
+          ;;
+          (when (boundp 'w32-pipe-read-delay)
+            (setq w32-pipe-read-delay 0))
+          ;; Set the buffer size to 64K on Windows (from the original 4K)
+          (when (boundp 'w32-pipe-buffer-size)
+            (setq irony-server-w32-pipe-buffer-size (* 64 1024)))
+
+          )))
 #+END_SRC
 *** CSharp
 **** Mode
@@ -904,7 +936,8 @@ Requires libclang to be installed.
     :ensure t
     :config
       (require 'company)
-      (add-hook 'python-mode-hook 'python-mode-company-init))
+      ;;(add-hook 'python-mode-hook 'python-mode-company-init)
+      )
 #+END_SRC
 *** Yaml
 **** Mode
