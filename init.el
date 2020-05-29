@@ -107,6 +107,7 @@
 (require 'fill-column-indicator)
 (setq fci-rule-column 80)
 (add-hook 'prog-mode-hook 'fci-mode)
+(add-hook 'tex-mode-hook 'fci-mode)
 
 ;; spell check
 (require 'flycheck)
