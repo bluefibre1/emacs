@@ -39,7 +39,28 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Save/Restore Frame Position/Size
+(defvar startup/frame-state-filename "~/.emacs.d/frame-state.el")
+(defun frame-state-save()
+  "Save the frame information."
+  (with-temp-file startup/frame-state-filename
+    (require 'cl)
+    (insert (format "%s" (list (first (frame-position))
+                               (rest (frame-position))
+                               (frame-width)
+                               (frame-height))))))
+(add-hook 'kill-emacs-hook 'frame-state-save)
 
+(if window-system
+(when (file-exists-p startup/frame-state-filename)
+  (with-temp-buffer
+    (insert-file-contents startup/frame-state-filename)
+    (setq l (read (buffer-string))
+          x (nth 0 l)
+          y (nth 1 l)
+          w (nth 2 l)
+          h (nth 3 l))
+    (setq initial-frame-alist
+          (list (cons 'top y) (cons 'left x) (cons 'width w) (cons 'height h))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Interface
@@ -77,6 +98,10 @@
 
 ;; Remove startup screen
 (setq inhibit-startup-message t)
+
+;; Tabs
+(setq-default indent-tabs-mode nil)
+(setq tab-width 4)
 
 ;; Disable menus and scrollbars
 (tool-bar-mode -1)
@@ -212,7 +237,15 @@
 (evil-define-key 'normal 'global (kbd "<leader>sg") 'counsel-git-grep)
 (evil-define-key 'normal 'global (kbd "<leader>ff") 'counsel-find-file)
 (evil-define-key 'normal 'global (kbd "<leader>cc") 'counsel-compile)
+(evil-define-key 'normal 'global (kbd "<leader>cb") 'eval-buffer)
+(evil-define-key 'normal 'global (kbd "<leader>cr") 'eval-region)
 (evil-define-key 'normal 'global (kbd "<leader>ce") 'counsel-compilation-errors)
+
+(evil-define-key 'normal 'global (kbd "<leader>df") 'counsel-describe-function)
+(evil-define-key 'normal 'global (kbd "<leader>dv") 'counsel-describe-variable)
+(evil-define-key 'normal 'global (kbd "<leader>ds") 'counsel-describe-symbol)
+(evil-define-key 'normal 'global (kbd "<leader>db") 'counsel-descbinds)
+(evil-define-key 'normal 'global (kbd "<leader>dm") 'describe-mode)
 
 (require 'which-key)
 (which-key-mode 1)
