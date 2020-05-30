@@ -1,20 +1,19 @@
+;;; init.el -- My Emacs's Init File
+;;; Commentary:
+;;; Code:
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Optimizations making Emacs start up faster
-(setq gc-cons-threshold 402653184
-      gc-cons-percentage 0.6)
-
+(defvar startup/gc-cons-threshold gc-cons-threshold)
+(setq gc-cons-threshold most-positive-fixnum)
 (defvar startup/file-name-handler-alist file-name-handler-alist)
 (setq file-name-handler-alist nil)
 
-(defun startup/revert-file-name-handler-alist ()
-  (setq file-name-handler-alist startup/file-name-handler-alist))
-
-(defun startup/reset-gc ()
-  (setq gc-cons-threshold 16777216
-	gc-cons-percentage 0.1))
-
-(add-hook 'emacs-startup-hook 'startup/revert-file-name-handler-alist)
-(add-hook 'emacs-startup-hook 'startup/reset-gc)
+(defun startup/revert-optimizations()
+  "Revert startup optimisations."
+  (setq gc-cons-threshold startup/gc-cons-threshold
+   file-name-handler-alist startup/file-name-handler-alist))
+(add-hook 'emacs-startup-hook 'startup/revert-optimizations)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Packages
@@ -22,11 +21,12 @@
 (setq package-archives '(("gnu" . "http://elpa.gnu.org/packages/")
 			 ("melpa" . "https://melpa.org/packages/")))
 (package-initialize)
-(defvar package-list '(package gruvbox-theme fill-column-indicator diminish evil
-			     async flycheck csharp-mode js2-mode json-mode
-			     markdown-mode yaml-mode counsel which-key recentf
-			     auto-complete rainbow-delimiters counsel-projectile
-			     ivy-rich evil-collection ws-butler))
+(defvar package-list '(package gruvbox-theme diminish evil async flycheck
+			       csharp-mode js2-mode json-mode markdown-mode
+			       yaml-mode counsel which-key recentf
+			       auto-complete rainbow-delimiters
+			       counsel-projectile ivy-rich evil-collection
+			       ws-butler))
 
 ;; fetch the list of packages available
 (unless package-archive-contents
@@ -38,9 +38,13 @@
     (package-install package)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Save/Restore Frame Position/Size
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Interface
 (require 'gruvbox-theme)
-(load-theme 'gruvbox-dark-hard t)
+(load-theme 'gruvbox t)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Evil Mode
@@ -58,17 +62,11 @@
 (require 'ws-butler)
 (add-hook 'prog-mode-hook 'ws-butler-mode)
 
-;; Save dimensions
-(require 'desktop)
-(desktop-save-mode 1)
-(setq desktop-load-locked-desktop t)
-(setq desktop-dirname user-emacs-directory)
-
-;; 80 column ruler
-(require 'fill-column-indicator)
-(setq fci-rule-column 80)
-(add-hook 'prog-mode-hook 'fci-mode)
-(add-hook 'tex-mode-hook 'fci-mode)
+;; 80 column max
+(setq-default whitespace-line-column 80
+	      whitespace-style '(face lines-tail))
+(add-hook 'prog-mode-hook 'whitespace-mode)
+(add-hook 'latex-mode-hook 'whitespace-mode)
 
 ;; spell check
 (require 'flycheck)
@@ -90,7 +88,12 @@
 (setq scroll-conservatively 10000)
 
 ;; Disable linewrap (this helps with performance on malformed documents)
-(setq-default truncate-lines t)
+(defun disable-line-wrap ()
+  "Disable linewrap."
+  (setq truncate-lines t))
+(add-hook 'prog-mode-hook 'disable-line-wrap)
+(add-to-list 'auto-mode-alist '("\\.log\\'" . text-mode))
+(add-hook 'text-mode-hook 'disable-line-wrap)
 
 ;; Line numbers
 (add-hook 'prog-mode-hook 'display-line-numbers-mode)
@@ -248,7 +251,7 @@
 
 (if (eq system-type 'windows-nt)
     (progn
-      (set-frame-font "Monaco 11")
+      (set-frame-font "Consolas 11")
       (setq default-frame-alist '((font . "Monaco 11")))
       (setenv "PATH"
 	      (concat
@@ -281,7 +284,9 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- )
+ '(package-selected-packages
+   (quote
+    (esup yaml-mode ws-butler which-key rainbow-delimiters markdown-mode json-mode js2-mode ivy-rich gruvbox-theme flycheck fill-column-indicator evil-collection diminish csharp-mode counsel-projectile auto-complete async))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
