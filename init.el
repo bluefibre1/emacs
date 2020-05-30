@@ -17,9 +17,9 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Packages
+(require 'package)
 (setq package-enable-at-startup nil)
-(setq package-archives '(("gnu" . "http://elpa.gnu.org/packages/")
-			 ("melpa" . "https://melpa.org/packages/")))
+(add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/"))
 (package-initialize)
 (defvar package-list '(package gruvbox-theme diminish evil async flycheck
 			       csharp-mode js2-mode json-mode markdown-mode
@@ -66,7 +66,7 @@
 (setq-default whitespace-line-column 80
 	      whitespace-style '(face lines-tail))
 (add-hook 'prog-mode-hook 'whitespace-mode)
-(add-hook 'latex-mode-hook 'whitespace-mode)
+(add-hook 'tex-mode-hook 'whitespace-mode)
 
 ;; spell check
 (require 'flycheck)
@@ -156,14 +156,12 @@
 (defun kill-current-buffer ()
   "Kill the current buffer."
   (interactive)
-  (kill-buffer (current-buffer)))
+  (kill-buffer (current-buffer)))	;
 
 (defun kill-other-buffers ()
   "Kill all other buffers."
   (interactive)
-  (mapc 'kill-buffer
-	(delq (current-buffer)
-	      (remove-if-not 'buffer-file-name (buffer-list)))))
+  (mapc 'kill-buffer (delq (current-buffer) (buffer-list))))
 
 (evil-define-key 'normal 'global (kbd "<leader>bk") 'kill-current-buffer)
 (evil-define-key 'normal 'global (kbd "<leader>bl") 'counsel-buffer-or-recentf)
@@ -285,11 +283,12 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
-   (quote
-    (esup yaml-mode ws-butler which-key rainbow-delimiters markdown-mode json-mode js2-mode ivy-rich gruvbox-theme flycheck fill-column-indicator evil-collection diminish csharp-mode counsel-projectile auto-complete async))))
+   '(esup ws-butler which-key rainbow-delimiters markdown-mode json-mode js2-mode ivy-rich gruvbox-theme flycheck evil-collection diminish csharp-mode counsel-projectile auto-complete async)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  )
+
+;;; init.el ends here
