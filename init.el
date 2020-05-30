@@ -48,8 +48,8 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Evil Mode
-(defvar evil-want-integration t)
-(defvar evil-want-keybinding nil)
+(setq-default evil-want-integration t)
+(setq-default evil-want-keybinding nil)
 (require 'evil)
 (evil-mode 1)
 (evil-collection-init)
