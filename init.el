@@ -26,7 +26,7 @@
 			       yaml-mode counsel which-key recentf
 			       auto-complete rainbow-delimiters
 			       counsel-projectile ivy-rich evil-collection
-			       ws-butler neotree general hydra))
+			       ws-butler neotree general hydra ivy-hydra))
 
 ;; fetch the list of packages available
 (unless package-archive-contents
@@ -293,6 +293,33 @@
 (diminish 'ws-butler-mode)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Hydra
+(require 'hydra)
+(defhydra hydra-window-zoom ()
+  "window zoom"
+  ("=" text-scale-increase "in")
+  ("-" text-scale-decrease "out")
+  ("0" (text-scale-adjust 0) "reset")
+  ("w" (evil-window-increase-width 1) "+ width")
+  ("W" (evil-window-decrease-width 1) "- width")
+  ("h" (evil-window-increase-height 1) "+ height")
+  ("H" (evil-window-decrease-height 1) "- height"))
+
+(defhydra hydra-window-jump ()
+  "window jump"
+  ("<up>" evil-window-up  "up")
+  ("k" evil-window-up  "up")
+  ("<left>" evil-window-left "left")
+  ("h" evil-window-left "left")
+  ("<down>" evil-window-down "down")
+  ("j" evil-window-down "down")
+  ("<right>" evil-window-right "right")
+  ("l" evil-window-right "right"))
+
+(require 'ivy-hydra)
+(define-key ivy-minibuffer-map (kbd "C-o") 'hydra-ivy/body)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; General Key Map
 (require 'general)
 (general-define-key
@@ -318,8 +345,10 @@
   ;; buffer/bookmark
   "b" '(:ignore t :which-key "Buffer/Bookmark")
   "bo" '(evil-buffer :which-key "other")
-  "bD" '(kill-other-buffers :which-key "delete others")
   "bd" '(kill-current-buffer :which-key "delete")
+  "b0" '(kill-current-buffer :which-key "delete")
+  "bD" '(kill-other-buffers :which-key "delete others")
+  "b1" '(kill-other-buffers :which-key "delete others")
   "bs" '(save-buffer :which-key "save")
   "bS" '(save-some-buffers :which-key "save all")
   "bn" '(evil-buffer-new :which-key "new")
@@ -343,7 +372,6 @@
 
   ;; other
   "SPC" '(counsel-M-x :which-key "M-x")
-  "a" '(hydra-launcher/body :which-key "Applications")
 
   ;; compile/code
   "c" '(:ignore t :which-key "Compile/Code")
@@ -361,8 +389,12 @@
   "wh" '(window-split-and-follow-horizontally :which-key "h-split")
   "wv" '(window-split-and-follow-vertically :which-key "v-split")
   "wd" '(delete-window :which-key "delete")
+  "w0" '(delete-window :which-key "delete")
   "wD" '(delete-other-windows :which-key "delete others")
+  "w1" '(delete-other-windows :which-key "delete others")
   "wo" '(other-window :which-key "other")
+  "wz" '(hydra-window-zoom/body t :which-key "zoom")
+  "wj" '(hydra-window-jump/body t :which-key "jump")
 
   ;; files
   "f" '(:ignore t :which-key "Files")
