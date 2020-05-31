@@ -334,14 +334,6 @@
  :keymaps 'override
  :prefix "SPC"
  :non-normal-prefix "M-SPC"
-  ;; search
-  "/" '(counsel-grep-or-swiper :wich-key "swiper")
-  "s" '(:ignore t :which-key "Search")
-  "ss" '(cousel-grep-or-swiper :which-key "swiper")
-  "sd" '(evil-ex-nohighlight :which-key "delete")
-  "sh" '(highlight-regexp :which-key "highlight")
-  "su" '(unhighlight-regexp :which-key "unhighlight")
-
   ;; buffer/bookmark
   "b" '(:ignore t :which-key "Buffer/Bookmark")
   "bo" '(evil-buffer :which-key "other")
@@ -356,6 +348,46 @@
   "bl" '(bookmark-bmenu-list :which-key "browse bookmark")
   "TAB" '(ivy-switch-buffer :which-key "switch buffer")
 
+  ;; compile/code
+  "c" '(:ignore t :which-key "Compile/Code")
+  "cc" '(counsel-compile :which-key "compile")
+  "ce" '(counsel-compilation-errors :which-key "show errors")
+  "c/" '(comment-or-uncomment-region-or-line :which-key "comment")
+
+  ;; delete
+  "d" '(:ignore t :which-key "Delete")
+  "db" '(kill-current-buffer :which-key "delete buffer")
+  "dw" '(delete-window :which-key "delete window")
+  "ds" '(evil-ex-nohighlight :which-key "delete search")
+
+  ;; evalation
+  "e" '(:ignore t :which-key "Eval")
+  "ed" '(eval-defun :which-key "function")
+  "eb" '(eval-buffer :which-key "buffer")
+
+  ;; files
+  "f" '(:ignore t :which-key "Files")
+  "ff" '(counsel-find-file :which-key "find file")
+  "fc" '(load-emacs-config :which-key "emacs config")
+
+  ;; help
+  "h" '(:ignore t :which-key "Help")
+  "hf" '(counsel-describe-function :which-key "function")
+  "hv" '(counsel-describe-variable :which-key "variable")
+  "hs" '(counsel-describe-symbol :which-key "symbol")
+  "hb" '(counsel-descbinds :which-key "binding")
+  "hm" '(describe-mode :which-key "mode")
+  "hk" '(describe-key :which-key "key")
+
+  ;; other
+  "SPC" '(counsel-M-x :which-key "M-x")
+
+  ;; project
+  "p" '(:ignore t :which-key "Project")
+  "pg" '(counsel-projectile-grep :which-key "grep")
+  "pf" '(counsel-projectile-find-file :which-key "find file")
+  "ps" '(counsel-projectile-switch-project :which-key "switch")
+
   ;; registers
   "r" '(:ignore t :which-key "Register")
   "rr" '(point-to-register :which-key "set point")
@@ -364,25 +396,19 @@
   "rf" '(frameset-to-register :which-key "set frame")
   "rl" '(counsel-register :which-key "set frame")
 
-  ;; project
-  "p" '(:ignore t :which-key "Project")
-  "pg" '(counsel-projectile-grep :which-key "grep")
-  "pf" '(counsel-projectile-find-file :which-key "find file")
-  "ps" '(counsel-projectile-switch-project :which-key "switch")
+  ;; search
+  "/" '(counsel-grep-or-swiper :wich-key "swiper")
+  "s" '(:ignore t :which-key "Search")
+  "ss" '(cousel-grep-or-swiper :which-key "swiper")
+  "sd" '(evil-ex-nohighlight :which-key "delete")
+  "s0" '(evil-ex-nohighlight :which-key "delete")
+  "sh" '(highlight-regexp :which-key "highlight")
+  "su" '(unhighlight-regexp :which-key "unhighlight")
 
-  ;; other
-  "SPC" '(counsel-M-x :which-key "M-x")
-
-  ;; compile/code
-  "c" '(:ignore t :which-key "Compile/Code")
-  "cc" '(counsel-compile :which-key "compile")
-  "ce" '(counsel-compilation-errors :which-key "show errors")
-  "c/" '(comment-or-uncomment-region-or-line :which-key "comment")
-
-  ;; evalation
-  "e" '(:ignore t :which-key "Eval")
-  "ed" '(eval-defun :which-key "function")
-  "eb" '(eval-buffer :which-key "buffer")
+  ;; tree
+  "t" '(:ignore t :which-key "Tree")
+  "tt" '(neotree-toggle :which-key "show/hide")
+  "tf" '(neotree-find : which-key "find")
 
   ;; window
   "w" '(:ignore t :which-key "Window")
@@ -395,31 +421,6 @@
   "wo" '(other-window :which-key "other")
   "wz" '(hydra-window-zoom/body t :which-key "zoom")
   "wj" '(hydra-window-jump/body t :which-key "jump")
-
-  ;; files
-  "f" '(:ignore t :which-key "Files")
-  "ff" '(counsel-find-file :which-key "find file")
-  "fc" '(load-emacs-config :which-key "emacs config")
-
-  ;; delete
-  "d" '(:ignore t :which-key "Delete")
-  "db" '(kill-current-buffer :which-key "delete buffer")
-  "dw" '(delete-window :which-key "delete window")
-  "ds" '(evil-ex-nohighlight :which-key "delete search")
-
-  ;; tree
-  "t" '(:ignore t :which-key "Tree")
-  "tt" '(neotree-toggle :which-key "show/hide")
-  "tf" '(neotree-find : which-key "find")
-
-  ;; help
-  "h" '(:ignore t :which-key "Help")
-  "hf" '(counsel-describe-function :which-key "function")
-  "hv" '(counsel-describe-variable :which-key "variable")
-  "hs" '(counsel-describe-symbol :which-key "symbol")
-  "hb" '(counsel-descbinds :which-key "binding")
-  "hm" '(describe-mode :which-key "mode")
-  "hk" '(describe-key :which-key "key")
   )
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
