@@ -26,7 +26,7 @@
 			       yaml-mode counsel which-key recentf
 			       auto-complete rainbow-delimiters
 			       counsel-projectile ivy-rich evil-collection
-			       ws-butler))
+			       ws-butler neotree))
 
 ;; fetch the list of packages available
 (unless package-archive-contents
@@ -165,7 +165,7 @@
 (require 'recentf)
 (setq recentf-max-menu-items 200)
 (setq recentf-max-saved-items 200)
-(add-to-list 'recentf-exclude "\\.el\\'")
+;;(add-to-list 'recentf-exclude "\\.el\\'")
 
 ;; Rainbow delimiters
 (require 'rainbow-delimiters)
@@ -227,25 +227,49 @@
 (setq ivy-count-format "(%d/%d) ")
 (ivy-rich-mode 1)
 
+;; searching
 (evil-define-key 'normal 'global (kbd "<leader>ss") 'counsel-grep-or-swiper)
 (evil-define-key 'normal 'global (kbd "<leader>sr") 'ivy-resume)
 (evil-define-key 'normal 'global (kbd "<leader>ss") 'counsel-grep-or-swiper)
+(evil-define-key 'normal 'global (kbd "<leader>sg") 'counsel-git-grep)
+
+;; meta
 (evil-define-key 'normal 'global (kbd "<leader>mx") 'counsel-M-x)
+(global-set-key (kbd "M-x") 'counsel-M-x)
+
+;; files
 (evil-define-key 'normal 'global (kbd "C-p") 'counsel-projectile-find-file)
 (evil-define-key 'normal 'global (kbd "<leader>pf") 'counsel-projectile-find-file)
 (evil-define-key 'normal 'global (kbd "<leader>ps") 'counsel-projectile-switch-project)
-(evil-define-key 'normal 'global (kbd "<leader>sg") 'counsel-git-grep)
 (evil-define-key 'normal 'global (kbd "<leader>ff") 'counsel-find-file)
+
+(require 'neotree)
+(setq-default neo-show-hidden-files t)
+(neotree-show)
+(switch-to-buffer-other-window "*scratch*")
+(setq neo-window-fixed-size nil)
+(evil-define-key 'normal 'global (kbd "<leader>tt") 'neotree-toggle)
+(evil-define-key 'normal 'global (kbd "<leader>tf") 'neotree-find)
+
+;; compile
 (evil-define-key 'normal 'global (kbd "<leader>cc") 'counsel-compile)
 (evil-define-key 'normal 'global (kbd "<leader>cb") 'eval-buffer)
-(evil-define-key 'normal 'global (kbd "<leader>cr") 'eval-region)
+(evil-define-key 'normal 'global (kbd "<leader>cd") 'eval-defun)
 (evil-define-key 'normal 'global (kbd "<leader>ce") 'counsel-compilation-errors)
 
+;; help
 (evil-define-key 'normal 'global (kbd "<leader>df") 'counsel-describe-function)
 (evil-define-key 'normal 'global (kbd "<leader>dv") 'counsel-describe-variable)
 (evil-define-key 'normal 'global (kbd "<leader>ds") 'counsel-describe-symbol)
 (evil-define-key 'normal 'global (kbd "<leader>db") 'counsel-descbinds)
 (evil-define-key 'normal 'global (kbd "<leader>dm") 'describe-mode)
+
+; bookmark/register
+(evil-define-key 'normal 'global (kbd "<leader>rbb") 'counsel-bookmark)
+(evil-define-key 'normal 'global (kbd "<leader>rbl") 'bookmark-bmenu-list)
+(evil-define-key 'normal 'global (kbd "<leader>rrr") 'point-to-register)
+(evil-define-key 'normal 'global (kbd "<leader>rrl") 'counsel-register)
+
 
 (require 'which-key)
 (which-key-mode 1)
@@ -316,7 +340,7 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
-   '(esup ws-butler which-key rainbow-delimiters markdown-mode json-mode js2-mode ivy-rich gruvbox-theme flycheck evil-collection diminish csharp-mode counsel-projectile auto-complete async)))
+   '(neotree esup ws-butler which-key rainbow-delimiters markdown-mode json-mode js2-mode ivy-rich gruvbox-theme flycheck evil-collection diminish csharp-mode counsel-projectile auto-complete async)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
