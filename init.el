@@ -26,7 +26,7 @@
 			       yaml-mode counsel which-key recentf
 			       auto-complete rainbow-delimiters
 			       counsel-projectile ivy-rich evil-collection
-			       ws-butler neotree))
+			       ws-butler neotree general hydra))
 
 ;; fetch the list of packages available
 (unless package-archive-contents
@@ -36,6 +36,23 @@
 (dolist (package package-list)
   (unless (package-installed-p package)
     (package-install package)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Utils
+(defun add-hooks (hooks function)
+  "Add more than one HOOKS to FUNCTION."
+  (mapc (lambda (hook)
+          (add-hook hook function))
+        hooks))
+
+(defun comment-or-uncomment-region-or-line ()
+    "Comments or uncomments the region or the current line if there's no active region."
+    (interactive)
+    (let (beg end)
+        (if (region-active-p)
+            (setq beg (region-beginning) end (region-end))
+            (setq beg (line-beginning-position) end (line-end-position)))
+        (comment-or-uncomment-region beg end)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Save/Restore Frame Position/Size
@@ -71,10 +88,10 @@
 ;; Evil Mode
 (setq-default evil-want-integration t)
 (setq-default evil-want-keybinding nil)
+(setq-default evil-search-module 'evil-search)
 (require 'evil)
 (evil-mode 1)
 (evil-collection-init)
-(evil-set-leader 'normal (kbd "SPC"))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Editor
@@ -86,14 +103,13 @@
 ;; 80 column max
 (setq-default whitespace-line-column 80
 	      whitespace-style '(face lines-tail))
-(add-hook 'prog-mode-hook 'whitespace-mode)
-(add-hook 'tex-mode-hook 'whitespace-mode)
+(add-hooks '(prog-mode-hook tex-mode-hook) 'whitespace-mode)
 
 ;; spell check
 (require 'flycheck)
-(add-hook 'prog-mode-hook 'flycheck-mode)
+(add-hooks '(prog-mode-hook tex-mode-hook) 'flycheck-mode)
 
-;; Disable bell
+;; Disable bell"
 (setq ring-bell-function 'ignore)
 
 ;; Remove startup screen
@@ -116,13 +132,16 @@
 (defun disable-line-wrap ()
   "Disable linewrap."
   (setq truncate-lines t))
-(add-hook 'prog-mode-hook 'disable-line-wrap)
+(add-hooks '(prog-mode-hook text-mode-hook) 'disable-line-wrap)
 (add-to-list 'auto-mode-alist '("\\.log\\'" . text-mode))
-(add-hook 'text-mode-hook 'disable-line-wrap)
 
 ;; Line numbers
-(add-hook 'prog-mode-hook 'display-line-numbers-mode)
-(add-hook 'tex-mode-hook 'display-line-numbers-mode)
+(add-hooks '(prog-mode-hook tex-mode-hook) 'display-line-numbers-mode)
+
+;; Highlight current line
+(require 'hl-line)
+(add-hooks '(prog-mode-hook tex-mode-hook) 'hl-line-mode)
+(set-face-background 'hl-line "#1f1f1f")
 
 ;; Electric Pairs
 (defvar electric-pair-pairs '(
@@ -131,7 +150,7 @@
 			      (?\[ . ?\])
 			      (?\" . ?\")
 			      ))
-(add-hook 'prog-mode-hook 'electric-pair-mode)
+(add-hooks '(prog-mode-hook tex-mode-hook) 'electric-pair-mode)
 
 ;; Compilation follow
 (require 'compile)
@@ -188,12 +207,6 @@
   (interactive)
   (mapc 'kill-buffer (delq (current-buffer) (buffer-list))))
 
-(evil-define-key 'normal 'global (kbd "<leader>bk") 'kill-current-buffer)
-(evil-define-key 'normal 'global (kbd "<leader>bl") 'counsel-buffer-or-recentf)
-(evil-define-key 'normal 'global (kbd "<leader>ba") 'kill-other-buffers)
-(evil-define-key 'normal 'global (kbd "<leader>bn") 'evil-buffer-new)
-(evil-define-key 'normal 'global (kbd "<leader>bo") 'evil-buffer)
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Windows
 (defun window-split-and-follow-horizontally ()
@@ -210,12 +223,6 @@
   (balance-windows)
   (other-window 1))
 
-(evil-define-key 'normal 'global (kbd "<leader>wh") 'window-split-and-follow-horizontally)
-(evil-define-key 'normal 'global (kbd "<leader>wv") 'window-split-and-follow-vertically)
-(evil-define-key 'normal 'global (kbd "<leader>wk") 'delete-window)
-(evil-define-key 'normal 'global (kbd "<leader>wa") 'delete-other-windows)
-(evil-define-key 'normal 'global (kbd "<leader>wo") 'other-window)
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Auto Complete and Search Helpers
 (require 'ivy)
@@ -227,49 +234,11 @@
 (setq ivy-count-format "(%d/%d) ")
 (ivy-rich-mode 1)
 
-;; searching
-(evil-define-key 'normal 'global (kbd "<leader>ss") 'counsel-grep-or-swiper)
-(evil-define-key 'normal 'global (kbd "<leader>sr") 'ivy-resume)
-(evil-define-key 'normal 'global (kbd "<leader>ss") 'counsel-grep-or-swiper)
-(evil-define-key 'normal 'global (kbd "<leader>sg") 'counsel-git-grep)
-
-;; meta
-(evil-define-key 'normal 'global (kbd "<leader>mx") 'counsel-M-x)
-(global-set-key (kbd "M-x") 'counsel-M-x)
-
-;; files
-(evil-define-key 'normal 'global (kbd "C-p") 'counsel-projectile-find-file)
-(evil-define-key 'normal 'global (kbd "<leader>pf") 'counsel-projectile-find-file)
-(evil-define-key 'normal 'global (kbd "<leader>ps") 'counsel-projectile-switch-project)
-(evil-define-key 'normal 'global (kbd "<leader>ff") 'counsel-find-file)
-
 (require 'neotree)
 (setq-default neo-show-hidden-files t)
 (neotree-show)
 (switch-to-buffer-other-window "*scratch*")
 (setq neo-window-fixed-size nil)
-(evil-define-key 'normal 'global (kbd "<leader>tt") 'neotree-toggle)
-(evil-define-key 'normal 'global (kbd "<leader>tf") 'neotree-find)
-
-;; compile
-(evil-define-key 'normal 'global (kbd "<leader>cc") 'counsel-compile)
-(evil-define-key 'normal 'global (kbd "<leader>cb") 'eval-buffer)
-(evil-define-key 'normal 'global (kbd "<leader>cd") 'eval-defun)
-(evil-define-key 'normal 'global (kbd "<leader>ce") 'counsel-compilation-errors)
-
-;; help
-(evil-define-key 'normal 'global (kbd "<leader>df") 'counsel-describe-function)
-(evil-define-key 'normal 'global (kbd "<leader>dv") 'counsel-describe-variable)
-(evil-define-key 'normal 'global (kbd "<leader>ds") 'counsel-describe-symbol)
-(evil-define-key 'normal 'global (kbd "<leader>db") 'counsel-descbinds)
-(evil-define-key 'normal 'global (kbd "<leader>dm") 'describe-mode)
-
-; bookmark/register
-(evil-define-key 'normal 'global (kbd "<leader>rbb") 'counsel-bookmark)
-(evil-define-key 'normal 'global (kbd "<leader>rbl") 'bookmark-bmenu-list)
-(evil-define-key 'normal 'global (kbd "<leader>rrr") 'point-to-register)
-(evil-define-key 'normal 'global (kbd "<leader>rrl") 'counsel-register)
-
 
 (require 'which-key)
 (which-key-mode 1)
@@ -279,23 +248,17 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Emacs Configuration
-(defun config-load ()
+(defun load-emacs-config ()
   "Open Emacs config file."
   (interactive)
   (find-file "~/.emacs.d/init.el"))
-(evil-define-key 'normal 'global (kbd "<leader>cl") 'config-load)
-
-(defun config-reload ()
-  "Reload Emacs config file."
-  (interactive)
-  (load-file (expand-file-name "~/.emacs.d/init.el")))
-(evil-define-key 'normal 'global (kbd "<leader>cr") 'config-reload)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Operating Systems Specific
 (if (eq system-type 'darwin)
     (progn
       (set-frame-font "Monaco 15")
+      (setq default-frame-alist '((font . "Monaco 15")))
       (global-set-key [home] 'move-beginning-of-line)
       (global-set-key [end] 'move-end-of-line)
       (setenv "PATH" (concat "/usr/local/bin:" (getenv "PATH")))
@@ -307,7 +270,7 @@
 (if (eq system-type 'windows-nt)
     (progn
       (set-frame-font "Consolas 11")
-      (setq default-frame-alist '((font . "Monaco 11")))
+      (setq default-frame-alist '((font . "Consolas 11")))
       (setenv "PATH"
 	      (concat
 	       "c:\\Program Files\\Git\\usr\\bin;"
@@ -330,6 +293,104 @@
 (diminish 'ws-butler-mode)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; General Key Map
+(require 'general)
+(general-define-key
+ "M-x" '(counsel-M-x :which-key "M-x")
+ "C-x C-f" '(counsel-find-file :which-key "find file")
+ "C-s" '(counsel-grep-or-swiper :which-key "swiper")
+ "C-p" '(counsel-projectile-find-file :which-key "find project file")
+ )
+
+(general-define-key
+ :states '(normal visual insert emacs)
+ :keymaps 'override
+ :prefix "SPC"
+ :non-normal-prefix "M-SPC"
+  ;; search
+  "/" '(counsel-grep-or-swiper :wich-key "swiper")
+  "s" '(:ignore t :which-key "Search")
+  "ss" '(cousel-grep-or-swiper :which-key "swiper")
+  "sd" '(evil-ex-nohighlight :which-key "delete")
+  "sh" '(highlight-regexp :which-key "highlight")
+  "su" '(unhighlight-regexp :which-key "unhighlight")
+
+  ;; buffer/bookmark
+  "b" '(:ignore t :which-key "Buffer/Bookmark")
+  "bo" '(evil-buffer :which-key "other")
+  "bD" '(kill-other-buffers :which-key "delete others")
+  "bd" '(kill-current-buffer :which-key "delete")
+  "bs" '(save-buffer :which-key "save")
+  "bS" '(save-some-buffers :which-key "save all")
+  "bn" '(evil-buffer-new :which-key "new")
+  "bb" '(counsel-bookmark :which-key "set bookmark")
+  "bl" '(bookmark-bmenu-list :which-key "browse bookmark")
+  "TAB" '(ivy-switch-buffer :which-key "switch buffer")
+
+  ;; registers
+  "r" '(:ignore t :which-key "Register")
+  "rr" '(point-to-register :which-key "set point")
+  "rj" '(jump-to-register :which-key "jump")
+  "rw" '(window-configuration-to-register :which-key "set window")
+  "rf" '(frameset-to-register :which-key "set frame")
+  "rl" '(counsel-register :which-key "set frame")
+
+  ;; project
+  "p" '(:ignore t :which-key "Project")
+  "pg" '(counsel-projectile-grep :which-key "grep")
+  "pf" '(counsel-projectile-find-file :which-key "find file")
+  "ps" '(counsel-projectile-switch-project :which-key "switch")
+
+  ;; other
+  "SPC" '(counsel-M-x :which-key "M-x")
+  "a" '(hydra-launcher/body :which-key "Applications")
+
+  ;; compile/code
+  "c" '(:ignore t :which-key "Compile/Code")
+  "cc" '(counsel-compile :which-key "compile")
+  "ce" '(counsel-compilation-errors :which-key "show errors")
+  "c/" '(comment-or-uncomment-region-or-line :which-key "comment")
+
+  ;; evalation
+  "e" '(:ignore t :which-key "Eval")
+  "ed" '(eval-defun :which-key "function")
+  "eb" '(eval-buffer :which-key "buffer")
+
+  ;; window
+  "w" '(:ignore t :which-key "Window")
+  "wh" '(window-split-and-follow-horizontally :which-key "h-split")
+  "wv" '(window-split-and-follow-vertically :which-key "v-split")
+  "wd" '(delete-window :which-key "delete")
+  "wD" '(delete-other-windows :which-key "delete others")
+  "wo" '(other-window :which-key "other")
+
+  ;; files
+  "f" '(:ignore t :which-key "Files")
+  "ff" '(counsel-find-file :which-key "find file")
+  "fc" '(load-emacs-config :which-key "emacs config")
+
+  ;; delete
+  "d" '(:ignore t :which-key "Delete")
+  "db" '(kill-current-buffer :which-key "delete buffer")
+  "dw" '(delete-window :which-key "delete window")
+  "ds" '(evil-ex-nohighlight :which-key "delete search")
+
+  ;; tree
+  "t" '(:ignore t :which-key "Tree")
+  "tt" '(neotree-toggle :which-key "show/hide")
+  "tf" '(neotree-find : which-key "find")
+
+  ;; help
+  "h" '(:ignore t :which-key "Help")
+  "hf" '(counsel-describe-function :which-key "function")
+  "hv" '(counsel-describe-variable :which-key "variable")
+  "hs" '(counsel-describe-symbol :which-key "symbol")
+  "hb" '(counsel-descbinds :which-key "binding")
+  "hm" '(describe-mode :which-key "mode")
+  "hk" '(describe-key :which-key "key")
+  )
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Anything below is personal preference.
 ;;; I recommend changing these values with the "customize" menu
 ;;; You can change the font to suit your liking, it won't break anything.
@@ -339,8 +400,9 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(line-number-mode nil)
  '(package-selected-packages
-   '(neotree esup ws-butler which-key rainbow-delimiters markdown-mode json-mode js2-mode ivy-rich gruvbox-theme flycheck evil-collection diminish csharp-mode counsel-projectile auto-complete async)))
+   '(general neotree esup ws-butler which-key rainbow-delimiters markdown-mode json-mode js2-mode ivy-rich gruvbox-theme flycheck evil-collection diminish csharp-mode counsel-projectile auto-complete async)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
