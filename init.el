@@ -279,6 +279,60 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Modeline
 ;; This must stay at bottom of the config file
+(setq-default mode-line-format
+              (list
+               ;; show evil state
+               "["
+               '(:eval (propertize (upcase (symbol-name evil-state))
+                                   'face 'font-lock-string-face))
+               "]"
+
+               ;; was this buffer modified since the last save?
+               "  "
+               '(:eval (when (buffer-modified-p)
+                         (propertize "*"
+                                     'face 'font-lock-type-face
+                                     'help-echo "Buffer has been modified")))
+
+               ;; the buffer name; the file name as a tool tip
+               '(:eval (propertize "%b" 'face 'font-lock-keyword-face
+                                   'help-echo (buffer-file-name)))
+               "  "
+
+               ;; column and line
+               "["
+               (propertize "%c" 'face 'font-lock-type-face)
+               ":"
+               (propertize "%l" 'face 'font-lock-type-face)
+               "]  "
+
+               ;; encoding
+               "["
+               (propertize (upcase (symbol-name locale-coding-system))
+                           'face 'font-lock-type-face)
+               "]  "
+
+               ;; the current major mode for the buffer.
+               "["
+
+               '(:eval (propertize "%m" 'face 'font-lock-string-face
+                                   'help-echo buffer-file-coding-system))
+               "]  "
+
+               ;; relative position, size of file
+               "["
+               (propertize "%p" 'face 'font-lock-preprocessor-face) ;; % above top
+               "/"
+               (propertize "%I" 'face 'font-lock-preprocessor-face) ;; size
+               "]  "
+
+               ;; time and date
+               "["
+               '(:eval (propertize (format-time-string "%F %T")))
+               "]"
+               ))
+
+
 (setq-default line-number-mode 1)
 (setq-default column-number-mode 1)
 
@@ -325,6 +379,8 @@
 ;; General Key Map
 (require 'general)
 (general-define-key
+ :states '(normal visual emacs)
+ :keymaps 'override
  "M-x" '(counsel-M-x :which-key "M-x")
  "C-x C-f" '(counsel-find-file :which-key "find file")
  "C-s" '(counsel-grep-or-swiper :which-key "swiper")
