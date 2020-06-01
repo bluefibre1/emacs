@@ -279,57 +279,52 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Modeline
 ;; This must stay at bottom of the config file
+(defface mode-line-evil-state-face
+  '((t :foreground "black" :background "OliveDrab" ))
+  "Face for mode line: Evil State"
+  :group 'my-modeline-group)
+
 (setq-default mode-line-format
               (list
                ;; show evil state
-               "["
-               '(:eval (propertize (upcase (symbol-name evil-state))
-                                   'face 'font-lock-string-face))
-               "]"
+               '(:eval (propertize
+                        (concat " " (concat (upcase (symbol-name evil-state)) " "))
+                                   'face 'mode-line-evil-state-face))
+               " "
 
                ;; was this buffer modified since the last save?
-               "  "
-               '(:eval (when (buffer-modified-p)
-                         (propertize "*"
-                                     'face 'font-lock-type-face
-                                     'help-echo "Buffer has been modified")))
+               '(:eval (if (buffer-modified-p)
+                         (propertize "!"
+                                     'face 'font-lock-keyword-face
+                                     'help-echo "Buffer has been modified") " "))
 
                ;; the buffer name; the file name as a tool tip
-               '(:eval (propertize "%b" 'face 'font-lock-keyword-face
-                                   'help-echo (buffer-file-name)))
-               "  "
+               '(:eval (propertize "%b  " 'help-echo (buffer-file-name)))
 
                ;; column and line
-               "["
                (propertize "%c" 'face 'font-lock-type-face)
                ":"
                (propertize "%l" 'face 'font-lock-type-face)
-               "]  "
 
                ;; encoding
-               "["
+               "  "
                (propertize (upcase (symbol-name locale-coding-system))
-                           'face 'font-lock-type-face)
-               "]  "
+                           'face 'font-lock-preprocessor-face)
+               "  "
 
                ;; the current major mode for the buffer.
-               "["
-
                '(:eval (propertize "%m" 'face 'font-lock-string-face
                                    'help-echo buffer-file-coding-system))
-               "]  "
 
                ;; relative position, size of file
-               "["
-               (propertize "%p" 'face 'font-lock-preprocessor-face) ;; % above top
+               "  "
+               (propertize "%p" 'face 'font-lock-variable-name-face) ;; % above top
                "/"
-               (propertize "%I" 'face 'font-lock-preprocessor-face) ;; size
-               "]  "
+               (propertize "%I" 'face 'font-lock-variable-name-face) ;; size
 
                ;; time and date
-               "["
-               '(:eval (propertize (format-time-string "%F %T")))
-               "]"
+               "  "
+               '(:eval (propertize (format-time-string "%F %R")))
                ))
 
 
