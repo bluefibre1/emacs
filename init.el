@@ -279,8 +279,9 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Modeline
 ;; This must stay at bottom of the config file
-(setq line-number-mode t)
-(setq column-number-mode t)
+(setq-default line-number-mode 1)
+(setq-default column-number-mode 1)
+
 (require 'diminish)
 (diminish 'visual-line-mode)
 (diminish 'subword-mode)
@@ -291,6 +292,7 @@
 (diminish 'undo-tree-mode)
 (diminish 'eldoc-mode)
 (diminish 'ws-butler-mode)
+(diminish 'whitespace-mode)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Hydra
