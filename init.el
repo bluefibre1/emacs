@@ -98,16 +98,18 @@
 
 ;; Delete white space at end of edited lines
 (require 'ws-butler)
-(add-hook 'prog-mode-hook 'ws-butler-mode)
+(add-hooks '(prog-mode-hook) 'ws-butler-mode)
 
 ;; 80 column max
 (setq-default whitespace-line-column 80
-	      whitespace-style '(face lines-tail))
-(add-hooks '(prog-mode-hook tex-mode-hook) 'whitespace-mode)
+	      whitespace-style '(face lines-tail)
+              set-fill-column 80)
+(add-hooks '(prog-mode-hook tex-mode-hook text-mode-hook) 'whitespace-mode)
+
 
 ;; spell check
 (require 'flycheck)
-(add-hooks '(prog-mode-hook tex-mode-hook) 'flycheck-mode)
+(add-hooks '(prog-mode-hook tex-mode-hook text-mode-hook) 'flycheck-mode)
 
 ;; Disable bell"
 (setq ring-bell-function 'ignore)
@@ -132,15 +134,19 @@
 (defun disable-line-wrap ()
   "Disable linewrap."
   (setq truncate-lines t))
-(add-hooks '(prog-mode-hook text-mode-hook) 'disable-line-wrap)
+(add-hooks '(prog-mode-hook tex-mode-hook text-mode-hook) 'disable-line-wrap)
 (add-to-list 'auto-mode-alist '("\\.log\\'" . text-mode))
 
 ;; Line numbers
-(add-hooks '(prog-mode-hook tex-mode-hook) 'display-line-numbers-mode)
+(defun display-relative-line-numbers()
+  "Displays relative line numbers."
+  (display-line-numbers-mode)
+  (setq display-line-numbers 'relative))
+(add-hooks '(prog-mode-hook tex-mode-hook text-mode-hook) 'display-relative-line-numbers)
 
 ;; Highlight current line
 (require 'hl-line)
-(add-hooks '(prog-mode-hook tex-mode-hook) 'hl-line-mode)
+(add-hooks '(prog-mode-hook tex-mode-hook text-mode-hook) 'hl-line-mode)
 (set-face-background 'hl-line "#1f1f1f")
 
 ;; Electric Pairs
@@ -421,6 +427,7 @@
   ;; files
   "f" '(:ignore t :which-key "Files")
   "ff" '(counsel-find-file :which-key "find file")
+  "fr" '(counsel-recentf :which-key "find recent")
   "fc" '(load-emacs-config :which-key "emacs config")
 
   ;; help
@@ -486,7 +493,6 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(line-number-mode nil)
  '(package-selected-packages
    '(general neotree esup ws-butler which-key rainbow-delimiters markdown-mode json-mode js2-mode ivy-rich gruvbox-theme flycheck evil-collection diminish csharp-mode counsel-projectile auto-complete async)))
 (custom-set-faces
