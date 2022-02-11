@@ -496,10 +496,15 @@
   "sh" '(highlight-regexp :which-key "highlight")
   "su" '(unhighlight-regexp :which-key "unhighlight")
 
-  ;; tree
-  ;; "t" '(:ignore t :which-key "Tree")
-  ;; "tt" '(neotree-toggle :which-key "show/hide")
-  ;; "tf" '(neotree-find : which-key "find") ;
+  ;; vc
+  "v" '(:ignore t :which-key "Vcs")
+  "vn" '(vc-next-action :which-key "next action")
+  "vP" '(vc-pull : which-key "pull")
+  "vp" '(vc-push : which-key "push")
+  "vl" '(vc-print-log : which-key "file log")
+  "vL" '(vc-print-root-log : which-key "root log")
+  "vd" '(vc-diff : which-key "file log")
+  "vD" '(vc-root-diff : which-key "root log")
 
   ;; window
   "w" '(:ignore t :which-key "Window")
