@@ -4,16 +4,33 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Optimizations making Emacs start up faster
-(defvar startup/gc-cons-threshold gc-cons-threshold)
-(setq gc-cons-threshold most-positive-fixnum)
-(defvar startup/file-name-handler-alist file-name-handler-alist)
-(setq file-name-handler-alist nil)
+;; Defer garbage collection further back in the startup process
+(setq gc-cons-threshold most-positive-fixnum
+      gc-cons-percentage 0.6)
 
-(defun startup/revert-optimizations()
-  "Revert startup optimisations."
-  (setq gc-cons-threshold startup/gc-cons-threshold
-   file-name-handler-alist startup/file-name-handler-alist))
-(add-hook 'emacs-startup-hook 'startup/revert-optimizations)
+;; In Emacs 27+, package initialization occurs before `user-init-file' is
+;; loaded, but after `early-init-file'. Doom handles package initialization, so
+;; we must prevent Emacs from doing it early!
+(setq package-enable-at-startup nil)
+;; Do not allow loading from the package cache (same reason).
+(setq package-quickstart nil)
+
+;; Prevent the glimpse of un-styled Emacs by disabling these UI elements early.
+(push '(menu-bar-lines . 0) default-frame-alist)
+(push '(tool-bar-lines . 0) default-frame-alist)
+(push '(vertical-scroll-bars) default-frame-alist)
+
+;; Resizing the Emacs frame can be a terribly expensive part of changing the
+;; font. By inhibiting this, we easily halve startup times with fonts that are
+;; larger than the system default.
+(setq frame-inhibit-implied-resize t)
+
+;; Disable GUI elements
+(menu-bar-mode -1)
+(tool-bar-mode -1)
+(scroll-bar-mode -1)
+(setq inhibit-splash-screen t)
+(setq use-file-dialog nil)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Packages
@@ -21,12 +38,11 @@
 (setq package-enable-at-startup nil)
 (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/"))
 (package-initialize)
-(defvar package-list '(package gruvbox-theme diminish evil async flycheck
+(defvar package-list '(package naysayer-theme diminish evil async project xref eldoc
 			       csharp-mode js2-mode json-mode markdown-mode
-			       yaml-mode counsel which-key recentf
-			       auto-complete rainbow-delimiters
-			       counsel-projectile ivy-rich evil-collection
-			       ws-butler neotree general hydra ivy-hydra))
+			       yaml-mode which-key recentf vertico savehist orderless consult marginalia
+			       auto-complete rainbow-delimiters bazel
+ 			       evil-collection ws-butler general hydra eglot))
 
 ;; fetch the list of packages available
 (unless package-archive-contents
@@ -71,24 +87,24 @@
 (when (file-exists-p startup/frame-state-filename)
   (with-temp-buffer
     (insert-file-contents startup/frame-state-filename)
-    (setq l (read (buffer-string))
+    (let (l x y w h)(setq l (read (buffer-string))
           x (nth 0 l)
           y (nth 1 l)
           w (nth 2 l)
           h (nth 3 l))
     (setq initial-frame-alist
-          (list (cons 'top y) (cons 'left x) (cons 'width w) (cons 'height h))))))
+          (list (cons 'top y) (cons 'left x) (cons 'width w) (cons 'height h)))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Interface
-(require 'gruvbox-theme)
-(load-theme 'gruvbox t)
+;; Theme
+(require 'naysayer-theme)
+(load-theme 'naysayer t)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Evil Mode
 (setq-default evil-want-integration t)
 (setq-default evil-want-keybinding nil)
-(setq-default evil-search-module 'evil-search)
+(setq-default evil-search-module 'evil-search) ; todo replace by swiper or equivalent
 (require 'evil)
 (evil-mode 1)
 (evil-collection-init)
@@ -100,16 +116,16 @@
 (require 'ws-butler)
 (add-hooks '(prog-mode-hook) 'ws-butler-mode)
 
-;; 80 column max
-(setq-default whitespace-line-column 80
+;; 120 column max
+(setq-default whitespace-line-column 120
 	      whitespace-style '(face lines-tail)
-              set-fill-column 80)
+              set-fill-column 120)
 (add-hooks '(prog-mode-hook tex-mode-hook text-mode-hook) 'whitespace-mode)
 
 
 ;; spell check
-(require 'flycheck)
-(add-hooks '(prog-mode-hook tex-mode-hook text-mode-hook) 'flycheck-mode)
+(require 'flymake)
+(add-hooks '(prog-mode-hook tex-mode-hook text-mode-hook) 'flymake-mode)
 
 ;; Disable bell"
 (setq ring-bell-function 'ignore)
@@ -138,16 +154,12 @@
 (add-to-list 'auto-mode-alist '("\\.log\\'" . text-mode))
 
 ;; Line numbers
-(defun display-relative-line-numbers()
-  "Displays relative line numbers."
-  (display-line-numbers-mode)
-  (setq display-line-numbers 'relative))
-(add-hooks '(prog-mode-hook tex-mode-hook text-mode-hook) 'display-relative-line-numbers)
+(add-hooks '(prog-mode-hook tex-mode-hook text-mode-hook) 'display-line-numbers-mode)
 
 ;; Highlight current line
 (require 'hl-line)
 (add-hooks '(prog-mode-hook tex-mode-hook text-mode-hook) 'hl-line-mode)
-(set-face-background 'hl-line "#1f1f1f")
+(set-face-background 'hl-line "#041c23")
 
 ;; Electric Pairs
 (defvar electric-pair-pairs '(
@@ -190,6 +202,7 @@
 (require 'recentf)
 (setq recentf-max-menu-items 200)
 (setq recentf-max-saved-items 200)
+(recentf-mode)
 ;;(add-to-list 'recentf-exclude "\\.el\\'")
 
 ;; Rainbow delimiters
@@ -231,20 +244,31 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Auto Complete and Search Helpers
-(require 'ivy)
-(require 'counsel)
-(require 'counsel-projectile)
-(require 'ivy-rich)
-(counsel-projectile-mode 1)
-(setq ivy-use-virtual-buffers t)
-(setq ivy-count-format "(%d/%d) ")
-(ivy-rich-mode 1)
+(require 'vertico)
+(setq vertico-cycle t)
+(vertico-mode)
 
-(require 'neotree)
-(setq-default neo-show-hidden-files t)
-(neotree-show)
-(switch-to-buffer-other-window "*scratch*")
-(setq neo-window-fixed-size nil)
+(require 'consult)
+
+(require 'orderless)
+(setq completion-styles '(orderless)
+        completion-category-defaults nil
+        completion-category-overrides '((file (styles partial-completion))))
+
+(require 'savehist)
+(savehist-mode)
+
+(require 'marginalia)
+(setq marginalia-annotators '(marginalia-annotators-heavy marginalia-annotators-light nil))
+(marginalia-mode)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; C/C++
+(require 'eglot)
+(add-to-list 'eglot-server-programs '((c++-mode c-mode) "/usr/local/Cellar/llvm/13.0.0_1/bin/clangd"))
+(add-hook 'c++-mode-hook 'eglot-ensure)
+(add-hook 'c-mode-hook 'eglot-ensure)
+(require 'bazel)
 
 (require 'which-key)
 (which-key-mode 1)
@@ -294,39 +318,36 @@
               (list
                ;; show evil state
                '(:eval (propertize
-                        (concat " " (concat (upcase (symbol-name evil-state)) " "))
-                                   'face 'mode-line-evil-state-face))
+                        (concat " " (concat (upcase (symbol-name evil-state)) " "))))
                " "
 
                ;; was this buffer modified since the last save?
                '(:eval (if (buffer-modified-p)
                          (propertize "!"
-                                     'face 'font-lock-keyword-face
                                      'help-echo "Buffer has been modified") " "))
 
                ;; the buffer name; the file name as a tool tip
                '(:eval (propertize "%b  " 'help-echo (buffer-file-name)))
 
                ;; column and line
-               (propertize "%c" 'face 'font-lock-type-face)
+               (propertize "%c")
                ":"
-               (propertize "%l" 'face 'font-lock-type-face)
+               (propertize "%l")
 
                ;; encoding
                "  "
-               (propertize (upcase (symbol-name locale-coding-system))
-                           'face 'font-lock-preprocessor-face)
+               (propertize (upcase (symbol-name locale-coding-system)))
                "  "
 
                ;; the current major mode for the buffer.
-               '(:eval (propertize "%m" 'face 'font-lock-string-face
+               '(:eval (propertize "%m"
                                    'help-echo buffer-file-coding-system))
 
                ;; relative position, size of file
                "  "
-               (propertize "%p" 'face 'font-lock-variable-name-face) ;; % above top
+               (propertize "%p" ) ;; % above top
                "/"
-               (propertize "%I" 'face 'font-lock-variable-name-face) ;; size
+               (propertize "%I" ) ;; size
 
                ;; time and date
                "  "
@@ -342,8 +363,7 @@
 (diminish 'subword-mode)
 (diminish 'auto-complete-mode)
 (diminish 'which-key-mode)
-(diminish 'projectile-mode)
-(diminish 'flycheck-mode)
+(diminish 'flymake-mode)
 (diminish 'undo-tree-mode)
 (diminish 'eldoc-mode)
 (diminish 'ws-butler-mode)
@@ -373,8 +393,10 @@
   ("<right>" evil-window-right "right")
   ("l" evil-window-right "right"))
 
-(require 'ivy-hydra)
-(define-key ivy-minibuffer-map (kbd "C-o") 'hydra-ivy/body)
+(defhydra hydra-vertico (vertico-map nil)
+  "vertico"
+  ("C-j" vertico-next)
+  ("C-k" vertico-previous))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; General Key Map
@@ -382,10 +404,16 @@
 (general-define-key
  :states '(normal visual emacs)
  :keymaps 'override
- "M-x" '(counsel-M-x :which-key "M-x")
- "C-x C-f" '(counsel-find-file :which-key "find file")
- "C-s" '(counsel-grep-or-swiper :which-key "swiper")
- "C-p" '(counsel-projectile-find-file :which-key "find project file")
+ "C-x C-f" '(find-file :which-key "find file")
+ "C-s" '(consult-line :which-key "swiper")
+ "/" '(consult-line :which-key "swiper")
+ "C-p" '(project-find-file :which-key "find project file")
+ "C-x 2" '(window-split-and-follow-horizontally :which-key "window split horizontal and follow")
+ "C-x 3" '(window-split-and-follow-vertically :which-key "window split vertical and follow")
+ "M-g" '(eglot-find-declaration :which-key "find declaration")
+ "M-G" '(eglot-find-implementation :which-key "find definition")
+ "<f8>" '(flymake-goto-next-error :which-key "goto next error")
+ "<f7>" '(bazel-build :which-key "build")
  )
 
 (general-define-key
@@ -403,15 +431,18 @@
   "bs" '(save-buffer :which-key "save")
   "bS" '(save-some-buffers :which-key "save all")
   "bn" '(evil-buffer-new :which-key "new")
-  "bb" '(counsel-bookmark :which-key "set bookmark")
+  "bb" '(bookmark-set :which-key "set bookmark")
   "bl" '(bookmark-bmenu-list :which-key "browse bookmark")
-  "TAB" '(ivy-switch-buffer :which-key "switch buffer")
+  "TAB" '(consult-buffer :which-key "switch buffer")
 
   ;; compile/code
   "c" '(:ignore t :which-key "Compile/Code")
-  "cc" '(counsel-compile :which-key "compile")
-  "ce" '(counsel-compilation-errors :which-key "show errors")
+  "cc" '(bazel-build :which-key "compile")
   "c/" '(comment-or-uncomment-region-or-line :which-key "comment")
+  "ce" '(consult-compile-error :which-key "error")
+  "c." '(eglot-code-action-quickfix :which-key "quickfix")
+  "cr" '(eglot-rename :which-key "rename")
+  "cf" '(eglot-format :which-key "format")
 
   ;; delete
   "d" '(:ignore t :which-key "Delete")
@@ -426,27 +457,27 @@
 
   ;; files
   "f" '(:ignore t :which-key "Files")
-  "ff" '(counsel-find-file :which-key "find file")
-  "fr" '(counsel-recentf :which-key "find recent")
+  "ff" '(find-file :which-key "find file")
+  "fr" '(consult-recent-file :which-key "find recent")
   "fc" '(load-emacs-config :which-key "emacs config")
 
   ;; help
   "h" '(:ignore t :which-key "Help")
-  "hf" '(counsel-describe-function :which-key "function")
-  "hv" '(counsel-describe-variable :which-key "variable")
-  "hs" '(counsel-describe-symbol :which-key "symbol")
-  "hb" '(counsel-descbinds :which-key "binding")
+  "hf" '(describe-function :which-key "function")
+  "hv" '(describe-variable :which-key "variable")
+  "hs" '(describe-symbol :which-key "symbol")
+  "hb" '(describe-bindings :which-key "binding")
   "hm" '(describe-mode :which-key "mode")
   "hk" '(describe-key :which-key "key")
 
   ;; other
-  "SPC" '(counsel-M-x :which-key "M-x")
+  "SPC" '(execute-extended-command :which-key "M-x")
 
   ;; project
   "p" '(:ignore t :which-key "Project")
-  "pg" '(counsel-projectile-grep :which-key "grep")
-  "pf" '(counsel-projectile-find-file :which-key "find file")
-  "ps" '(counsel-projectile-switch-project :which-key "switch")
+  "pg" '(project-search :which-key "grep")
+  "pf" '(project-find-file :which-key "find file")
+  "ps" '(project-switch-project :which-key "switch")
 
   ;; registers
   "r" '(:ignore t :which-key "Register")
@@ -454,21 +485,21 @@
   "rj" '(jump-to-register :which-key "jump")
   "rw" '(window-configuration-to-register :which-key "set window")
   "rf" '(frameset-to-register :which-key "set frame")
-  "rl" '(counsel-register :which-key "set frame")
+  "rl" '(consult-register :which-key "set frame")
 
   ;; search
-  "/" '(counsel-grep-or-swiper :wich-key "swiper")
+  "/" '(consult-line :wich-key "swiper")
   "s" '(:ignore t :which-key "Search")
-  "ss" '(cousel-grep-or-swiper :which-key "swiper")
+  "ss" '(consult-line :which-key "swiper")
   "sd" '(evil-ex-nohighlight :which-key "delete")
   "s0" '(evil-ex-nohighlight :which-key "delete")
   "sh" '(highlight-regexp :which-key "highlight")
   "su" '(unhighlight-regexp :which-key "unhighlight")
 
   ;; tree
-  "t" '(:ignore t :which-key "Tree")
-  "tt" '(neotree-toggle :which-key "show/hide")
-  "tf" '(neotree-find : which-key "find")
+  ;; "t" '(:ignore t :which-key "Tree")
+  ;; "tt" '(neotree-toggle :which-key "show/hide")
+  ;; "tf" '(neotree-find : which-key "find") ;
 
   ;; window
   "w" '(:ignore t :which-key "Window")
@@ -493,8 +524,7 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(package-selected-packages
-   '(general neotree esup ws-butler which-key rainbow-delimiters markdown-mode json-mode js2-mode ivy-rich gruvbox-theme flycheck evil-collection diminish csharp-mode counsel-projectile auto-complete async)))
+ '(package-selected-packages nil))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
