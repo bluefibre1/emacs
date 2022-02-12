@@ -41,7 +41,7 @@
 (defvar package-list '(package naysayer-theme diminish evil async project xref eldoc
 			       csharp-mode js2-mode json-mode markdown-mode
 			       yaml-mode which-key recentf vertico savehist orderless consult marginalia
-			       auto-complete rainbow-delimiters bazel
+			       auto-complete rainbow-delimiters bazel wgrep embark embark-consult
  			       evil-collection ws-butler general hydra eglot))
 
 ;; fetch the list of packages available
@@ -249,6 +249,10 @@
 (vertico-mode)
 
 (require 'consult)
+(setq consult-project-root-function
+        (lambda ()
+          (when-let (project (project-current))
+            (car (project-roots project)))))
 
 (require 'orderless)
 (setq completion-styles '(orderless)
@@ -261,6 +265,11 @@
 (require 'marginalia)
 (setq marginalia-annotators '(marginalia-annotators-heavy marginalia-annotators-light nil))
 (marginalia-mode)
+
+(require 'wgrep)
+
+(require 'embark)
+(require 'embark-consult)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; C/C++
@@ -275,6 +284,18 @@
 
 (require 'auto-complete)
 (global-auto-complete-mode t)
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Org Mode
+(org-babel-do-load-languages
+ 'org-babel-load-languages
+ '((plantuml . t)
+   (shell . t)
+   (emacs-lisp . t)
+   (python . t)
+   ))
+(setq org-confirm-babel-evaluate nil)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Emacs Configuration
@@ -368,6 +389,7 @@
 (diminish 'eldoc-mode)
 (diminish 'ws-butler-mode)
 (diminish 'whitespace-mode)
+(diminish 'embark-mode)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Hydra
@@ -396,7 +418,15 @@
 (defhydra hydra-vertico (vertico-map nil)
   "vertico"
   ("C-j" vertico-next)
-  ("C-k" vertico-previous))
+  ("C-k" vertico-previous)
+  ("C-e" wgrep))
+
+(defhydra hydra-embark (minibuffer-local-map nil)
+  "vertico"
+  ("C-." embark-act)
+  ("C-;" embark-dwim)
+  ("C-e" wgrep))
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; General Key Map
@@ -406,7 +436,6 @@
  :keymaps 'override
  "C-x C-f" '(find-file :which-key "find file")
  "C-s" '(consult-line :which-key "swiper")
- "/" '(consult-line :which-key "swiper")
  "C-p" '(project-find-file :which-key "find project file")
  "C-x 2" '(window-split-and-follow-horizontally :which-key "window split horizontal and follow")
  "C-x 3" '(window-split-and-follow-vertically :which-key "window split vertical and follow")
@@ -437,7 +466,7 @@
 
   ;; compile/code
   "c" '(:ignore t :which-key "Compile/Code")
-  "cc" '(bazel-build :which-key "compile")
+  "cc" '(project-compile :which-key "compile")
   "c/" '(comment-or-uncomment-region-or-line :which-key "comment")
   "ce" '(consult-compile-error :which-key "error")
   "c." '(eglot-code-action-quickfix :which-key "quickfix")
@@ -475,7 +504,6 @@
 
   ;; project
   "p" '(:ignore t :which-key "Project")
-  "pg" '(project-search :which-key "grep")
   "pf" '(project-find-file :which-key "find file")
   "ps" '(project-switch-project :which-key "switch")
 
@@ -488,13 +516,12 @@
   "rl" '(consult-register :which-key "set frame")
 
   ;; search
-  "/" '(consult-line :wich-key "swiper")
   "s" '(:ignore t :which-key "Search")
   "ss" '(consult-line :which-key "swiper")
-  "sd" '(evil-ex-nohighlight :which-key "delete")
-  "s0" '(evil-ex-nohighlight :which-key "delete")
+  "sg" '(consult-ripgrep :which-key "grep")
   "sh" '(highlight-regexp :which-key "highlight")
   "su" '(unhighlight-regexp :which-key "unhighlight")
+  "sr" '(unhighlight-regexp :which-key "replace")
 
   ;; vc
   "v" '(:ignore t :which-key "Vcs")
@@ -529,7 +556,8 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(package-selected-packages nil))
+ '(package-selected-packages
+   '(yaml-mode ws-butler which-key vertico rainbow-delimiters orderless naysayer-theme markdown-mode marginalia json-mode js2-mode hydra general flycheck evil-collection eglot diminish csharp-mode consult clang-format bazel auto-complete async)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
